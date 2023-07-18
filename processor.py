@@ -1,65 +1,113 @@
 
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder,FunctionTransformer
+from sklearn.compose import ColumnTransformer
 
-X = df.drop(columns=['resale_price'])
-y = df['resale_price']
+def raw_data_process(df: pd.DataFrame):
+    '''
+    Takes in raw data (in DataFrame),
+    returns X (pd.DataFrame), y (pd.Series)
+    where X has unused columns removed,
+    and the features are the same as the one generated from user input.
+    '''
+    X = df.drop(columns = ['resale_price', 'block', 'street_name', 'lease_commence_date'])
+    y = df['resale_price']
+
+    # X is left with month, town, flat_type,
+    # storey_range (string), floor_area_sqm, flat_model, remaining_lease
+    # To get to the same features as user input, we have to process storey_range
+
+    X['storey'] = X['storey_range'].apply(lambda x: int(x[:2]))
+    X.drop(columns = ['storey_range'], inplace = True)
+
+    return X, y
 
 
-def preprocessor(df):
-    """
-    Input df should be a pandas dataframe.
-    It will return a training format dataframe.
-    """
-    df['storey_range_low'] = df['storey_range'].str[:2].apply(lambda x: int(x))
-    df['remaining_lease_years'] = df['remaining_lease'].str[:2].apply(lambda x: int(x))
-    df['remaining_lease_months'] = df['remaining_lease'].str[9:11]
-    df['remaining_lease_months'] = df['remaining_lease_months'].apply(lambda x: 0 if x == '0 ' or x =='' else x)
-    df['remaining_lease_months'] = df['remaining_lease_months'].apply(lambda x: int(x))
-    df['remaining_lease_years'] = df['remaining_lease_years'] + df['remaining_lease_months'].apply(lambda x: x/12)
-    numerical_features = ['floor_area_sqm', 'storey_range_low', 'remaining_lease_years']
-    categorical_features = ['town', 'flat_type', 'flat_model']
-    df=df.drop(columns=['block','street_name','lease_commence_date','storey_range','remaining_lease','remaining_lease_months'])
-    min_floor_area_sqm=31
-    max_floor_area_sqm=249
-    min_storey_range_low=1
-    max_storey_range_low=49
-    min_remaining_lease_years=42.58
-    max_remaining_lease_years=99
-    df['floor_area_sqm']=df['floor_area_sqm'].apply(lambda x:(x-min_floor_area_sqm)/(max_floor_area_sqm))
-    df['storey_range_low']=df['storey_range_low'].apply(lambda x:(x-min_storey_range_low)/(max_storey_range_low))
-    df['remaining_lease_years']=df['remaining_lease_years'].apply(lambda x:(x-min_remaining_lease_years)/(max_remaining_lease_years))
-    categorical_features_names=[np.array(['ANG MO KIO', 'BEDOK', 'BISHAN', 'BUKIT BATOK', 'BUKIT MERAH',
+def preprocessor(X: pd.DataFrame):
+    '''
+    Takes in DataFrame, returns processed data.
+    Transforms a dataset with 7 features into a dataset with 57 features.
+
+    Stateless operation.
+    '''
+    # Convert remaining_lease from the format XX years YY months to a float (years)
+    X['r_lease'] = X['remaining_lease'].apply(lambda x: (int(x[:2])) if x[9:11]== '0 ' or x[9:11] == '' else (int(x[:2]) + int(x[9:11])/12))
+    X.drop(columns = ['remaining_lease'], inplace = True)
+
+    #extract year and month details from month column and drop the month column
+    X['sale_year'] = X['month'].dt.year
+    X['sale_month'] = X['month'].dt.month
+    X['sale_month_sin'] = np.sin(2 * np.pi * X.sale_month/12)
+    X['sale_month_cos'] = np.cos(2 * np.pi * X.sale_month/12)
+
+    X.drop(columns = ['month','sale_month'], inplace = True)
+
+    def create_preprocessor() -> ColumnTransformer:
+        # One hot encoding for categorical features
+        town_list = ['ANG MO KIO', 'BEDOK', 'BISHAN', 'BUKIT BATOK', 'BUKIT MERAH',
         'BUKIT PANJANG', 'BUKIT TIMAH', 'CENTRAL AREA', 'CHOA CHU KANG',
         'CLEMENTI', 'GEYLANG', 'HOUGANG', 'JURONG EAST', 'JURONG WEST',
         'KALLANG/WHAMPOA', 'MARINE PARADE', 'PASIR RIS', 'PUNGGOL',
         'QUEENSTOWN', 'SEMBAWANG', 'SENGKANG', 'SERANGOON', 'TAMPINES',
-        'TOA PAYOH', 'WOODLANDS', 'YISHUN'], dtype=object),np.array(['1 ROOM', '2 ROOM', '3 ROOM', '4 ROOM', '5 ROOM', 'EXECUTIVE',
-        'MULTI-GENERATION'], dtype=object),np.array(['2-room', '3Gen', 'Adjoined flat', 'Apartment', 'DBSS', 'Improved',
-        'Improved-Maisonette', 'Maisonette', 'Model A',
-        'Model A-Maisonette', 'Model A2', 'Multi Generation',
-        'New Generation', 'Premium Apartment', 'Premium Apartment Loft',
-        'Premium Maisonette', 'Simplified', 'Standard', 'Terrace',
-        'Type S1', 'Type S2'], dtype=object)]
-    feature_name=np.array(['town_ANG MO KIO', 'town_BEDOK', 'town_BISHAN', 'town_BUKIT BATOK', 'town_BUKIT MERAH', 'town_BUKIT PANJANG', 'town_BUKIT TIMAH',
-       'town_CENTRAL AREA', 'town_CHOA CHU KANG', 'town_CLEMENTI', 'town_GEYLANG', 'town_HOUGANG', 'town_JURONG EAST',
-       'town_JURONG WEST', 'town_KALLANG/WHAMPOA', 'town_MARINE PARADE', 'town_PASIR RIS', 'town_PUNGGOL', 'town_QUEENSTOWN',
-       'town_SEMBAWANG', 'town_SENGKANG', 'town_SERANGOON', 'town_TAMPINES', 'town_TOA PAYOH', 'town_WOODLANDS', 'town_YISHUN',
-       'flat_type_1 ROOM', 'flat_type_2 ROOM', 'flat_type_3 ROOM', 'flat_type_4 ROOM', 'flat_type_5 ROOM', 'flat_type_EXECUTIVE',
-       'flat_type_MULTI-GENERATION', 'flat_model_2-room', 'flat_model_3Gen', 'flat_model_Adjoined flat',
-       'flat_model_Apartment', 'flat_model_DBSS', 'flat_model_Improved', 'flat_model_Improved-Maisonette', 'flat_model_Maisonette',
-       'flat_model_Model A', 'flat_model_Model A-Maisonette', 'flat_model_Model A2', 'flat_model_Multi Generation',
-       'flat_model_New Generation', 'flat_model_Premium Apartment', 'flat_model_Premium Apartment Loft',
-       'flat_model_Premium Maisonette', 'flat_model_Simplified', 'flat_model_Standard', 'flat_model_Terrace', 'flat_model_Type S1',
-       'flat_model_Type S2'], dtype=object)
-    encoder=OneHotEncoder(categories=categorical_features_names,sparse=False)
-    transformed=encoder.fit_transform(df[categorical_features])
-    transformed_categorical_df=pd.DataFrame(transformed, columns=feature_name)
-    df=df[['month','floor_area_sqm', 'storey_range_low', 'remaining_lease_years']]
-    processed_df=pd.concat([df,transformed_categorical_df],axis=1)
+        'TOA PAYOH', 'WOODLANDS', 'YISHUN']
 
-    return processed_df
+        flat_type_list = ['2 ROOM', '3 ROOM', '4 ROOM', '5 ROOM', 'EXECUTIVE', '1 ROOM',
+            'MULTI-GENERATION']
+
+        flat_model_list = ['Improved', 'New Generation', 'DBSS', 'Standard', 'Apartment',
+            'Simplified', 'Model A', 'Premium Apartment', 'Adjoined flat',
+            'Model A-Maisonette', 'Maisonette', 'Type S1', 'Type S2',
+            'Model A2', 'Terrace', 'Improved-Maisonette', 'Premium Maisonette',
+            'Multi Generation', 'Premium Apartment Loft', '2-room', '3Gen']
+
+        categorical_features_names = [np.array(town_list, dtype=object),
+                                    np.array(flat_type_list, dtype=object),
+                                    np.array(flat_model_list, dtype=object)]
+
+        categorical_ohe = OneHotEncoder(
+            categories = categorical_features_names,
+            handle_unknown = "ignore",
+            sparse = False
+            )
+
+        categorical_features = ['town', 'flat_type', 'flat_model']
+
+        # Numerical scalars
+
+        # Floor Area min/max
+        f_area_min = 0
+        f_area_max = 260
+
+        # Storey min/max
+        storey_min = 1
+        storey_max = 55
+
+        # Remaining lease years min/max
+        r_lease_min = 0
+        r_lease_max = 99
+
+        f_area_pipe = FunctionTransformer(lambda p: (p - f_area_min) / (f_area_max - f_area_min))
+        storey_pipe = FunctionTransformer(lambda p: (p - storey_min) / (storey_max - storey_min))
+        r_lease_pipe = FunctionTransformer(lambda p: (p - r_lease_min) / (r_lease_max - r_lease_min))
+
+        # Combined preprocessor
+        final_preprocessor = ColumnTransformer(
+                [
+                    ("f_area_scalar", f_area_pipe, ["floor_area_sqm"]),
+                    ("storey_scalar", storey_pipe, ["storey"]),
+                    ("r_lease_scalar", r_lease_pipe, ["r_lease"]),
+                    ("categorical", categorical_ohe, categorical_features)
+                ],
+                n_jobs=-1,
+                remainder='passthrough'
+            )
+        return final_preprocessor
+
+    preprocessor = create_preprocessor()
+    X_processed = preprocessor.fit_transform(X)
+
+    return X_processed
 
 ### This line below should be in another py file eg. fast.py
 month='2023-07-01'
