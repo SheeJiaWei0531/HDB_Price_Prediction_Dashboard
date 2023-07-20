@@ -27,7 +27,7 @@ def raw_data_process(df: pd.DataFrame):
 def preprocessor(X: pd.DataFrame):
     '''
     Takes in DataFrame, returns processed data.
-    Transforms a dataset with 7 features into a dataset with 57 features.
+    Transforms a dataset with 7 features into a dataset with 60 features.
 
     Stateless operation.
     '''
@@ -128,22 +128,13 @@ data_input={'month':[month],
     'flat_model': [flat_model],
     'remaining_lease': [f'{remaining_lease_year} years {remaining_lease_month} months']}
 data_df=pd.DataFrame(data_input)
+input_feature=['month', 'town', 'flat_type', 'storey_range', 'floor_area_sqm','flat_model', 'remaining_lease']
+original_feature=['month', 'town', 'flat_type', 'block', 'street_name', 'storey_range', 'floor_area_sqm', 'flat_model', 'lease_commence_date','remaining_lease','resale_price']
+input_df=pd.DataFrame(columns=original_feature)
+for i in original_feature:
+    for j in input_feature:
+        if i==j:
+            input_df.loc[0,i]=data_df.loc[0,j]
+
 
 ### This line above should be in another py file eg. fast.py
-
-
-
-def user_input_processor(x):
-    '''
-    put the data_df into the x
-    It will return the final prediction data frame.
-    '''
-    input_feature=['month', 'town', 'flat_type', 'storey_range', 'floor_area_sqm','flat_model', 'remaining_lease']
-    original_feature=['month', 'town', 'flat_type', 'block', 'street_name', 'storey_range', 'floor_area_sqm', 'flat_model', 'lease_commence_date','remaining_lease']
-    predict_df=pd.DataFrame(columns=original_feature)
-    for i in original_feature:
-        for j in input_feature:
-            if i==j:
-                predict_df.loc[0,i]=x.loc[0,j]
-    final_predict_df= preprocessor(predict_df)
-    return final_predict_df
