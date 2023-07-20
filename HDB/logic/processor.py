@@ -21,6 +21,11 @@ def raw_data_process(df: pd.DataFrame):
     X['storey'] = X['storey_range'].apply(lambda x: int(x[:2]))
     X.drop(columns = ['storey_range'], inplace = True)
 
+    X['sale_year'] = X['month'].dt.year
+    X['sale_month'] = X['month'].dt.month
+
+    X.drop(columns = ['month'], inplace = True)
+
     return X, y
 
 
@@ -36,12 +41,10 @@ def preprocessor(X: pd.DataFrame):
     X.drop(columns = ['remaining_lease'], inplace = True)
 
     #extract year and month details from month column and drop the month column
-    X['sale_year'] = X['month'].dt.year
-    X['sale_month'] = X['month'].dt.month
     X['sale_month_sin'] = np.sin(2 * np.pi * X.sale_month/12)
     X['sale_month_cos'] = np.cos(2 * np.pi * X.sale_month/12)
 
-    X.drop(columns = ['month','sale_month'], inplace = True)
+    X.drop(columns = ['sale_month'], inplace = True)
 
     def create_preprocessor() -> ColumnTransformer:
         # One hot encoding for categorical features
