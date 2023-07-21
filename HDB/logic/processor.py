@@ -5,6 +5,7 @@ from sklearn.preprocessing import OneHotEncoder,FunctionTransformer
 from sklearn.compose import ColumnTransformer
 
 def raw_data_process(df: pd.DataFrame):
+    print("Raw data process in progress.....................")
     '''
     Takes in raw data (in DataFrame),
     returns X (pd.DataFrame), y (pd.Series)
@@ -30,6 +31,8 @@ def raw_data_process(df: pd.DataFrame):
 
 
 def preprocessor(X: pd.DataFrame):
+    print("Predicted data process in progress.....................")
+
     '''
     Takes in DataFrame, returns processed data.
     Transforms a dataset with 7 features into a dataset with 60 features.
@@ -110,34 +113,36 @@ def preprocessor(X: pd.DataFrame):
     preprocessor = create_preprocessor()
     X_processed = preprocessor.fit_transform(X)
 
+
     return X_processed
 
-### This line below should be in another py file eg. fast.py
-month='2023-07-01'
-town='CHOA CHU KANG'
-flat_type='5 ROOM'
-storey_range='10 TO 12'
-floor_area_sqm=100
-flat_model='Improved'
-remaining_lease_year=92
-remaining_lease_month=6
-
-
-data_input={'month':[month],
-    'town': [town],
-    'flat_type': [flat_type],
-    'storey_range':[storey_range],
-    'floor_area_sqm': [floor_area_sqm],
-    'flat_model': [flat_model],
-    'remaining_lease': [f'{remaining_lease_year} years {remaining_lease_month} months']}
-data_df=pd.DataFrame(data_input)
-input_feature=['month', 'town', 'flat_type', 'storey_range', 'floor_area_sqm','flat_model', 'remaining_lease']
-original_feature=['month', 'town', 'flat_type', 'block', 'street_name', 'storey_range', 'floor_area_sqm', 'flat_model', 'lease_commence_date','remaining_lease','resale_price']
-input_df=pd.DataFrame(columns=original_feature)
-for i in original_feature:
-    for j in input_feature:
-        if i==j:
-            input_df.loc[0,i]=data_df.loc[0,j]
+"""This line below should be in another py file eg. fast.py
+    month: str,  # 2013-07-06
+    town: str,    # CHOA CHU KANG
+    flat_type: str,     # 5 ROOM
+    storey: str,   # 10 TO 12
+    floor_area_sqm: int,    # 100
+    flat_model: str,   # 'Improved'
+    remaining_lease_year: int,  # 92
+    remaining_lease_month: int  # 6
+    """
+# data_input={'month':[pd.Timestamp(month, tz='US/Pacific')],
+#     'town': [town],
+#     'flat_type': [flat_type],
+#     'storey_range':[storey],
+#     'floor_area_sqm': [floor_area_sqm],
+#     'flat_model': [flat_model],
+#     'remaining_lease': [f'{remaining_lease_year} years {remaining_lease_month} months']}
+# data_df=pd.DataFrame(data_input)
+# data_df=pd.DataFrame(data_input)
+# input_feature=['month', 'town', 'flat_type', 'storey_range', 'floor_area_sqm','flat_model', 'remaining_lease']
+# original_feature=['month', 'town', 'flat_type', 'block', 'street_name', 'storey_range', 'floor_area_sqm', 'flat_model', 'lease_commence_date','remaining_lease','resale_price']
+# input_df=pd.DataFrame(columns=original_feature)
+# for i in original_feature:
+#     for j in input_feature:
+#         if i==j:
+#             input_df.loc[0,i]=data_df.loc[0,j]
+# input_df['month']=pd.to_datetime(input_df['month'])
 
 
 ### This line above should be in another py file eg. fast.py
