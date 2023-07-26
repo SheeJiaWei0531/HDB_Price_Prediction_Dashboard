@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 COPY ./HDB /code/HDB
 RUN pip install --upgrade pip
 
-CMD ["uvicorn", "HDB.api.fast:app", "--host", "0.0.0.0","--port", "$PORT"]
+CMD ["uvicorn", "HDB.api.fast:app", "--host", "0.0.0.0","--port", "${PORT}"]
