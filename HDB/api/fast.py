@@ -6,7 +6,7 @@ import pickle
 import os
 
 # Specify the path to the pickle file
-pickle_file_path = os.path.join('notebooks','model_lgbm.pickle')
+pickle_file_path = os.path.join('HDB','logic', 'model_lgbm.pickle')
 
 # Open the pickle file in binary read mode ('rb')
 with open(pickle_file_path, 'rb') as file:
