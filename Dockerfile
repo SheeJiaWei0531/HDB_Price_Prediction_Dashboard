@@ -7,4 +7,4 @@ COPY setup.py /setup.py
 
 
 
-CMD uvicorn HDB.api.fast:app --host 0.0.0.0 $PORT
+CMD uvicorn HDB.api.fast:app --host 0.0.0.0 --port $PORT
