@@ -1,6 +1,11 @@
 import streamlit as st
 import pandas as pd
-
+from util import boxplot,histogram,map
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import percentileofscore
+import os
+import pydeck as pdk
 
 
 st.set_page_config(layout='wide', initial_sidebar_state="expanded")
@@ -20,7 +25,104 @@ storey=st.sidebar.number_input("Enter your storey")
 floor_area=st.sidebar.number_input("Enter your floor area in sqm")
 remaining_lease_year=st.sidebar.number_input("Enter remaining lease year")
 remaining_lease_month=st.sidebar.number_input("Enter remaining lease month")
+predic_button = st.sidebar.button("Predict")
 
-# Row A
-st.markdown("### Summary")
-c1,c2,c3= st.columns(3)
+
+
+
+
+
+
+
+if "load_state" not in st.session_state:
+    st.session_state.load_state=False
+if predic_button or st.session_state.load_state:
+    st.session_state.load_state= True
+
+
+
+    estimated_price=500000 #to be get from api output
+    st.header(f'Based on your given input, the estimated price for your flat is $ {estimated_price}.')
+
+    # Row A
+    st.markdown("### Analysis based on transaction since year 2017 till July 2023")
+
+    data_year= st.checkbox("Latest two years")
+    c1,c2= st.columns(2)
+    @st.cache_data()
+    def load_data(filepath):
+        return pd.read_csv(filepath)
+    file_path = os.path.join('../','raw_data', 'resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv')
+    df=load_data(file_path)
+    with c1:
+        result_box = boxplot(town, flat_type, estimated_price,df)
+        st.write(result_box)
+    with c2:
+        result_hist = histogram(town, flat_type, estimated_price,df)
+        st.write(result_hist)
+
+
+    # st.header("Analysis based on transaction since year 2021 till July 2023")
+
+    if "load_state" not in st.session_state:
+        st.session_state.load_state=False
+    if data_year or st.session_state.load_state:
+        st.session_state.load_state= True
+
+
+
+        if data_year:
+            st.header("Analysis based on transaction since year 2021 till July 2023")
+            c3,c4= st.columns(2)
+            @st.cache_data()
+            def load_data(filepath):
+                return pd.read_csv(filepath)
+            file_path = os.path.join('../','raw_data', 'resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv')
+            df=load_data(file_path)
+            df=df[df["year"]>=2021]
+
+            with c3:
+                result_box = boxplot(town, flat_type, estimated_price,df)
+                st.write(result_box)
+            with c4:
+                result_hist = histogram(town, flat_type, estimated_price,df)
+                st.write(result_hist)
+
+
+
+
+
+
+
+        st.header("Interactive map based on price/sqm ")
+
+        selection= st.checkbox("HDB")
+        @st.cache_data()
+        def load_data(filepath):
+            return pd.read_csv(filepath)
+        file_path = os.path.join('../','raw_data', 'resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv')
+        df=load_data(file_path)
+
+        map_df=df.groupby('Address').agg(remaining_lease= ("remaining_lease", "first"),town=("town", "first"),block=("block", "first"),Latitute=("Latitude", "first"),
+                                    Longitude=("Longitude", "first"),Flat_level=("max_floor_lvl", "max"),
+                                    price_per_sqm=('resale_price', 'sum'), total_area=('floor_area_sqm', 'sum'),).assign(price_per_sqm=lambda x: x['price_per_sqm'] / x['total_area']).drop('total_area', axis=1).reset_index()
+
+        data=map_df.copy()
+        # data['color_scale'] = data['price_per_sqm'].apply(lambda x: [int(x)*255/(data['price_per_sqm'].max()),0, 230])
+        data['color_scale'] = data['price_per_sqm'].apply(lambda x: [255, int(x*255/(data['price_per_sqm'].max())), int(x*255/(data['price_per_sqm'].max())), 255] \
+                                                          if x > data['price_per_sqm'].median() else [int(x*255/(data['price_per_sqm'].max())), 255, int(x*255/(data['price_per_sqm'].max())),255])
+
+
+        if "load_state" not in st.session_state:
+            st.session_state.load_state=False
+        if selection or st.session_state.load_state:
+            st.session_state.load_state= True
+
+            if selection:
+
+                st.write(map(data, selection=True))
+            else:
+                st.write(map(data, selection=False))
+
+            st.write(":red[Red color indicates price higher than the median price]")
+            st.write(":green[Green color indicates price lower than the median price]")
