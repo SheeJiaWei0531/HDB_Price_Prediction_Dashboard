@@ -1,0 +1,17 @@
+# API
+fastapi         # API framework
+pytz            # time zone management
+uvicorn         # web server
+gunicorn
+# tests
+httpx           # HTTP client
+pytest-asyncio  # asynchronous I/O support for pytest
+pandas
+numpy
+# pickle
+lightgbm
+xgboost
+scikit-learn==1.1.2
+pydeck
+scipy
+streamlit
