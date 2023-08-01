@@ -89,7 +89,7 @@ if predic_button or st.session_state.load_state:
             @st.cache_data()
             def load_data(filepath):
                 return pd.read_csv(filepath)
-            file_path = os.path.join('../','raw_data', 'resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv')
+            file_path = os.path.join('raw_data', 'resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv')
             df=load_data(file_path)
             df=df[df["year"]>=2021]
 
@@ -112,7 +112,7 @@ if predic_button or st.session_state.load_state:
         @st.cache_data()
         def load_data(filepath):
             return pd.read_csv(filepath)
-        file_path = os.path.join('../','raw_data', 'resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv')
+        file_path = os.path.join('raw_data', 'resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv')
         df=load_data(file_path)
 
         map_df=df.groupby('Address').agg(remaining_lease= ("remaining_lease", "first"),town=("town", "first"),block=("block", "first"),Latitute=("Latitude", "first"),
