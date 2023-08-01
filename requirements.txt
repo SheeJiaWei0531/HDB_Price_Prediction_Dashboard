@@ -8,6 +8,5 @@ pydeck
 scipy
 matplotlib
 seaborn
-os
+
 requests
-streamlit
