@@ -6,7 +6,7 @@ import seaborn as sns
 from scipy.stats import percentileofscore
 import streamlit as st
 
-file_path = os.path.join('../','raw_data', 'resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv')
+file_path = os.path.join('raw_data', 'resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv')
 
 df=pd.read_csv(file_path)
 
