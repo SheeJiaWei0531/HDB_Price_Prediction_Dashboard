@@ -1,4 +1,3 @@
-
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder,FunctionTransformer
@@ -31,7 +30,7 @@ def raw_data_process(df: pd.DataFrame):
 
 
 def preprocessor(X: pd.DataFrame):
-    print("Predicted data process in progress.....................")
+    print("Data process in progress.....................")
 
     '''
     Takes in DataFrame, returns processed data.
@@ -43,11 +42,15 @@ def preprocessor(X: pd.DataFrame):
     X['r_lease'] = X['remaining_lease'].apply(lambda x: (int(x[:2])) if x[9:11]== '0 ' or x[9:11] == '' else (int(x[:2]) + int(x[9:11])/12))
     X.drop(columns = ['remaining_lease'], inplace = True)
 
-    #extract year and month details from month column and drop the month column
+    print("Converting month to sin, cos.....................")
+    # convert month to month sin and cos for cycles
     X['sale_month_sin'] = np.sin(2 * np.pi * X.sale_month/12)
     X['sale_month_cos'] = np.cos(2 * np.pi * X.sale_month/12)
 
+    print("Successfully converted.....................")
+
     X.drop(columns = ['sale_month'], inplace = True)
+    print("Successfully dropped column.....................")
 
     def create_preprocessor() -> ColumnTransformer:
         # One hot encoding for categorical features
@@ -111,8 +114,10 @@ def preprocessor(X: pd.DataFrame):
         return final_preprocessor
 
     preprocessor = create_preprocessor()
-    X_processed = preprocessor.fit_transform(X)
 
+    print("Preprocessing, fit_transform.....................")
+    X_processed = preprocessor.fit_transform(X)
+    print("Successfully fit_transformed!.....................")
 
     return X_processed
 
