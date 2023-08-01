@@ -6,6 +6,7 @@ import seaborn as sns
 from scipy.stats import percentileofscore
 import os
 import pydeck as pdk
+import requests
 
 
 st.set_page_config(layout='wide', initial_sidebar_state="expanded")
@@ -21,14 +22,24 @@ flat_type=st.sidebar.selectbox("Flat type",('2 ROOM', '3 ROOM', '4 ROOM', '5 ROO
 model_type=st.sidebar.selectbox("Model type",('Improved', 'New Generation', 'DBSS', 'Standard', 'Apartment',
             'Simplified', 'Model A', 'Premium Apartment', 'Adjoined flat', 'Model A-Maisonette', 'Maisonette', 'Type S1', 'Type S2',
             'Model A2', 'Terrace', 'Improved-Maisonette', 'Premium Maisonette', 'Multi Generation', 'Premium Apartment Loft', '2-room', '3Gen'))
-storey=st.sidebar.number_input("Enter your storey")
-floor_area=st.sidebar.number_input("Enter your floor area in sqm")
-remaining_lease_year=st.sidebar.number_input("Enter remaining lease year")
-remaining_lease_month=st.sidebar.number_input("Enter remaining lease month")
+storey=st.sidebar.number_input("Enter your storey",step=1, value=1,min_value = 1, max_value = 55)
+floor_area=st.sidebar.number_input("Enter your floor area in sqm",step=1, value= 1,min_value = 1, max_value = 260)
+remaining_lease_year=st.sidebar.number_input("Enter remaining lease year",step=1, value= 95,min_value = 0, max_value = 99)
+remaining_lease_month=st.sidebar.number_input("Enter remaining lease month",step=1, value= 1,min_value = 0, max_value = 11)
 predic_button = st.sidebar.button("Predict")
 
 
+params={"town" : town,
+        "flat_type" : flat_type,
+        "storey" : storey,
+        "floor_area_sqm" : floor_area,
+        "flat_model" : model_type,
+        "remaining_lease_year": remaining_lease_year,
+        "remaining_lease_month" : remaining_lease_month}
 
+url= "https://hdb-prediction-4612fd06bd0d.herokuapp.com/predict"
+
+request = requests.get(url, params=params).json()
 
 
 
@@ -41,7 +52,8 @@ if predic_button or st.session_state.load_state:
 
 
 
-    estimated_price=500000 #to be get from api output
+    estimated_price= round(request['Estimated_resale_price'])
+
     st.header(f'Based on your given input, the estimated price for your flat is $ {estimated_price}.')
 
     # Row A
